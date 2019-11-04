@@ -59,6 +59,9 @@ namespace BgApiDriver {
             ble_cmd_system_aes_setkey_id = 15,
             ble_cmd_system_aes_encrypt_id = 16,
             ble_cmd_system_aes_decrypt_id = 17,
+            ble_cmd_system_usb_enumeration_status_get_id = 18,
+            ble_cmd_system_get_bootloader_crc_id = 19,
+            ble_cmd_system_delay_reset_id = 20,
             ble_cmd_flash_ps_defrag_id = 0,
             ble_cmd_flash_ps_dump_id = 1,
             ble_cmd_flash_ps_erase_all_id = 2,
@@ -104,6 +107,7 @@ namespace BgApiDriver {
             ble_cmd_sm_get_bonds_id = 5,
             ble_cmd_sm_set_oob_data_id = 6,
             ble_cmd_sm_whitelist_bonds_id = 7,
+            ble_cmd_sm_set_pairing_distribution_keys_id = 8,
             ble_cmd_gap_set_privacy_flags_id = 0,
             ble_cmd_gap_set_mode_id = 1,
             ble_cmd_gap_discover_id = 2,
@@ -116,6 +120,7 @@ namespace BgApiDriver {
             ble_cmd_gap_set_adv_data_id = 9,
             ble_cmd_gap_set_directed_connectable_mode_id = 10,
             ble_cmd_gap_set_initiating_con_parameters_id = 11,
+            ble_cmd_gap_set_nonresolvable_address_id = 12,
             ble_cmd_hardware_io_port_config_irq_id = 0,
             ble_cmd_hardware_set_soft_timer_id = 1,
             ble_cmd_hardware_adc_read_id = 2,
@@ -137,6 +142,8 @@ namespace BgApiDriver {
             ble_cmd_hardware_analog_comparator_config_irq_id = 18,
             ble_cmd_hardware_set_rxgain_id = 19,
             ble_cmd_hardware_usb_enable_id = 20,
+            ble_cmd_hardware_sleep_enable_id = 21,
+            ble_cmd_hardware_get_timestamp_id = 22,
             ble_cmd_test_phy_tx_id = 0,
             ble_cmd_test_phy_rx_id = 1,
             ble_cmd_test_phy_end_id = 2,
@@ -148,6 +155,8 @@ namespace BgApiDriver {
             ble_cmd_dfu_flash_set_address_id = 1,
             ble_cmd_dfu_flash_upload_id = 2,
             ble_cmd_dfu_flash_upload_finish_id = 3,
+            ble_cmd_dfu_get_bootloader_crc_id = 4,
+            ble_cmd_dfu_delay_reset_id = 5,
         }
 
         public enum ble_event_ids
@@ -159,6 +168,7 @@ namespace BgApiDriver {
             ble_evt_system_script_failure_id = 4,
             ble_evt_system_no_license_key_id = 5,
             ble_evt_system_protocol_error_id = 6,
+            ble_evt_system_usb_enumerated_id = 7,
             ble_evt_flash_ps_key_id = 0,
             ble_evt_attributes_value_id = 0,
             ble_evt_attributes_user_read_request_id = 1,
@@ -186,6 +196,7 @@ namespace BgApiDriver {
             ble_evt_hardware_soft_timer_id = 1,
             ble_evt_hardware_adc_result_id = 2,
             ble_evt_hardware_analog_comparator_status_id = 3,
+            ble_evt_hardware_radio_error_id = 4,
             ble_evt_dfu_boot_id = 0,
         }
 
@@ -409,6 +420,21 @@ namespace BgApiDriver {
         public class ble_msg_system_aes_decrypt_rsp_t : BgApiResponse
         {
             public byte[] data;
+        }
+
+        public class ble_msg_system_usb_enumeration_status_get_rsp_t : BgApiResponse
+        {
+            //public int result;
+            public int status;
+        }
+
+        public class ble_msg_system_get_bootloader_crc_rsp_t : BgApiResponse
+        {
+            public int crc;
+        }
+
+        public class ble_msg_system_delay_reset_rsp_t : BgApiResponse
+        {
         }
 
         public class ble_msg_flash_ps_defrag_rsp_t : BgApiResponse
@@ -653,6 +679,11 @@ namespace BgApiDriver {
             public int count;
         }
 
+        public class ble_msg_sm_set_pairing_distribution_keys_rsp_t : BgApiResponse
+        {
+            //public int result;
+        }
+
         public class ble_msg_gap_set_privacy_flags_rsp_t : BgApiResponse
         {
         }
@@ -710,6 +741,11 @@ namespace BgApiDriver {
         }
 
         public class ble_msg_gap_set_initiating_con_parameters_rsp_t : BgApiResponse
+        {
+            //public int result;
+        }
+
+        public class ble_msg_gap_set_nonresolvable_address_rsp_t : BgApiResponse
         {
             //public int result;
         }
@@ -822,6 +858,16 @@ namespace BgApiDriver {
             //public int result;
         }
 
+        public class ble_msg_hardware_sleep_enable_rsp_t : BgApiResponse
+        {
+            //public int result;
+        }
+
+        public class ble_msg_hardware_get_timestamp_rsp_t : BgApiResponse
+        {
+            public long value;
+        }
+
         public class ble_msg_test_phy_tx_rsp_t : BgApiResponse
         {
         }
@@ -871,6 +917,15 @@ namespace BgApiDriver {
         public class ble_msg_dfu_flash_upload_finish_rsp_t : BgApiResponse
         {
             //public int result;
+        }
+
+        public class ble_msg_dfu_get_bootloader_crc_rsp_t : BgApiResponse
+        {
+            public int crc;
+        }
+
+        public class ble_msg_dfu_delay_reset_rsp_t : BgApiResponse
+        {
         }
 
         public void ble_cmd_system_reset(int boot_in_dfu)
@@ -1196,6 +1251,54 @@ namespace BgApiDriver {
             // send
             BgApiResponse response = Send(new BgApiCommand() { Data = _data }, false);
             return (ble_msg_system_aes_decrypt_rsp_t)response;
+        }
+
+        public ble_msg_system_usb_enumeration_status_get_rsp_t ble_cmd_system_usb_enumeration_status_get()
+        {
+            log("ble_cmd_system_usb_enumeration_status_get_id");
+            byte[] _data = new byte[SIZE_HEADER + 0];
+            int idx = 0;
+            // header
+            _data[idx++] = (byte)ble_dev_types.ble_dev_type_ble|(byte)ble_msg_types.ble_msg_type_cmd|0x0;
+            _data[idx++] = (byte)(0);
+            _data[idx++] = (byte)ble_classes.ble_cls_system;
+            _data[idx++] = (byte)ble_command_ids.ble_cmd_system_usb_enumeration_status_get_id;
+            // send
+            BgApiResponse response = Send(new BgApiCommand() { Data = _data }, false);
+            return (ble_msg_system_usb_enumeration_status_get_rsp_t)response;
+        }
+
+        public ble_msg_system_get_bootloader_crc_rsp_t ble_cmd_system_get_bootloader_crc()
+        {
+            log("ble_cmd_system_get_bootloader_crc_id");
+            byte[] _data = new byte[SIZE_HEADER + 0];
+            int idx = 0;
+            // header
+            _data[idx++] = (byte)ble_dev_types.ble_dev_type_ble|(byte)ble_msg_types.ble_msg_type_cmd|0x0;
+            _data[idx++] = (byte)(0);
+            _data[idx++] = (byte)ble_classes.ble_cls_system;
+            _data[idx++] = (byte)ble_command_ids.ble_cmd_system_get_bootloader_crc_id;
+            // send
+            BgApiResponse response = Send(new BgApiCommand() { Data = _data }, false);
+            return (ble_msg_system_get_bootloader_crc_rsp_t)response;
+        }
+
+        public void ble_cmd_system_delay_reset(int dfu, int delay_ms)
+        {
+            log("ble_cmd_system_delay_reset_id");
+            byte[] _data = new byte[SIZE_HEADER + 0 + 1 + 2];
+            int idx = 0;
+            // header
+            _data[idx++] = (byte)ble_dev_types.ble_dev_type_ble|(byte)ble_msg_types.ble_msg_type_cmd|0x0;
+            _data[idx++] = (byte)(0 + 1 + 2);
+            _data[idx++] = (byte)ble_classes.ble_cls_system;
+            _data[idx++] = (byte)ble_command_ids.ble_cmd_system_delay_reset_id;
+            // data
+            _data[idx++] = (byte)dfu;
+            _data[idx++] = (byte)delay_ms;
+            _data[idx++] = (byte)(delay_ms >> 8);
+            // send
+            Send(new BgApiCommand() { Data = _data }, true);
         }
 
         public void ble_cmd_flash_ps_defrag()
@@ -2084,6 +2187,24 @@ namespace BgApiDriver {
             return (ble_msg_sm_whitelist_bonds_rsp_t)response;
         }
 
+        public ble_msg_sm_set_pairing_distribution_keys_rsp_t ble_cmd_sm_set_pairing_distribution_keys(int initiator_keys, int responder_keys)
+        {
+            log("ble_cmd_sm_set_pairing_distribution_keys_id");
+            byte[] _data = new byte[SIZE_HEADER + 0 + 1 + 1];
+            int idx = 0;
+            // header
+            _data[idx++] = (byte)ble_dev_types.ble_dev_type_ble|(byte)ble_msg_types.ble_msg_type_cmd|0x0;
+            _data[idx++] = (byte)(0 + 1 + 1);
+            _data[idx++] = (byte)ble_classes.ble_cls_sm;
+            _data[idx++] = (byte)ble_command_ids.ble_cmd_sm_set_pairing_distribution_keys_id;
+            // data
+            _data[idx++] = (byte)initiator_keys;
+            _data[idx++] = (byte)responder_keys;
+            // send
+            BgApiResponse response = Send(new BgApiCommand() { Data = _data }, false);
+            return (ble_msg_sm_set_pairing_distribution_keys_rsp_t)response;
+        }
+
         public void ble_cmd_gap_set_privacy_flags(int peripheral_privacy, int central_privacy)
         {
             log("ble_cmd_gap_set_privacy_flags_id");
@@ -2326,6 +2447,26 @@ namespace BgApiDriver {
             // send
             BgApiResponse response = Send(new BgApiCommand() { Data = _data }, false);
             return (ble_msg_gap_set_initiating_con_parameters_rsp_t)response;
+        }
+
+        public ble_msg_gap_set_nonresolvable_address_rsp_t ble_cmd_gap_set_nonresolvable_address(bd_addr address)
+        {
+            log("ble_cmd_gap_set_nonresolvable_address_id");
+            byte[] _data = new byte[SIZE_HEADER + 0 + 1 + address.Length];
+            int idx = 0;
+            // header
+            _data[idx++] = (byte)ble_dev_types.ble_dev_type_ble|(byte)ble_msg_types.ble_msg_type_cmd|0x0;
+            _data[idx++] = (byte)(0 + 1 + address.Length);
+            _data[idx++] = (byte)ble_classes.ble_cls_gap;
+            _data[idx++] = (byte)ble_command_ids.ble_cmd_gap_set_nonresolvable_address_id;
+            // data
+            for(int i = 0; i < address.Length; i++)
+            {
+                _data[idx++] = address.Address[i];
+            }
+            // send
+            BgApiResponse response = Send(new BgApiCommand() { Data = _data }, false);
+            return (ble_msg_gap_set_nonresolvable_address_rsp_t)response;
         }
 
         public ble_msg_hardware_io_port_config_irq_rsp_t ble_cmd_hardware_io_port_config_irq(int port, int enable_bits, int falling_edge)
@@ -2720,6 +2861,38 @@ namespace BgApiDriver {
             return (ble_msg_hardware_usb_enable_rsp_t)response;
         }
 
+        public ble_msg_hardware_sleep_enable_rsp_t ble_cmd_hardware_sleep_enable(int enable)
+        {
+            log("ble_cmd_hardware_sleep_enable_id");
+            byte[] _data = new byte[SIZE_HEADER + 0 + 1];
+            int idx = 0;
+            // header
+            _data[idx++] = (byte)ble_dev_types.ble_dev_type_ble|(byte)ble_msg_types.ble_msg_type_cmd|0x0;
+            _data[idx++] = (byte)(0 + 1);
+            _data[idx++] = (byte)ble_classes.ble_cls_hardware;
+            _data[idx++] = (byte)ble_command_ids.ble_cmd_hardware_sleep_enable_id;
+            // data
+            _data[idx++] = (byte)enable;
+            // send
+            BgApiResponse response = Send(new BgApiCommand() { Data = _data }, false);
+            return (ble_msg_hardware_sleep_enable_rsp_t)response;
+        }
+
+        public ble_msg_hardware_get_timestamp_rsp_t ble_cmd_hardware_get_timestamp()
+        {
+            log("ble_cmd_hardware_get_timestamp_id");
+            byte[] _data = new byte[SIZE_HEADER + 0];
+            int idx = 0;
+            // header
+            _data[idx++] = (byte)ble_dev_types.ble_dev_type_ble|(byte)ble_msg_types.ble_msg_type_cmd|0x0;
+            _data[idx++] = (byte)(0);
+            _data[idx++] = (byte)ble_classes.ble_cls_hardware;
+            _data[idx++] = (byte)ble_command_ids.ble_cmd_hardware_get_timestamp_id;
+            // send
+            BgApiResponse response = Send(new BgApiCommand() { Data = _data }, false);
+            return (ble_msg_hardware_get_timestamp_rsp_t)response;
+        }
+
         public void ble_cmd_test_phy_tx(int channel, int length, int type)
         {
             log("ble_cmd_test_phy_tx_id");
@@ -2908,6 +3081,39 @@ namespace BgApiDriver {
             return (ble_msg_dfu_flash_upload_finish_rsp_t)response;
         }
 
+        public ble_msg_dfu_get_bootloader_crc_rsp_t ble_cmd_dfu_get_bootloader_crc()
+        {
+            log("ble_cmd_dfu_get_bootloader_crc_id");
+            byte[] _data = new byte[SIZE_HEADER + 0];
+            int idx = 0;
+            // header
+            _data[idx++] = (byte)ble_dev_types.ble_dev_type_ble|(byte)ble_msg_types.ble_msg_type_cmd|0x0;
+            _data[idx++] = (byte)(0);
+            _data[idx++] = (byte)ble_classes.ble_cls_dfu;
+            _data[idx++] = (byte)ble_command_ids.ble_cmd_dfu_get_bootloader_crc_id;
+            // send
+            BgApiResponse response = Send(new BgApiCommand() { Data = _data }, false);
+            return (ble_msg_dfu_get_bootloader_crc_rsp_t)response;
+        }
+
+        public void ble_cmd_dfu_delay_reset(int dfu, int delay_ms)
+        {
+            log("ble_cmd_dfu_delay_reset_id");
+            byte[] _data = new byte[SIZE_HEADER + 0 + 1 + 2];
+            int idx = 0;
+            // header
+            _data[idx++] = (byte)ble_dev_types.ble_dev_type_ble|(byte)ble_msg_types.ble_msg_type_cmd|0x0;
+            _data[idx++] = (byte)(0 + 1 + 2);
+            _data[idx++] = (byte)ble_classes.ble_cls_dfu;
+            _data[idx++] = (byte)ble_command_ids.ble_cmd_dfu_delay_reset_id;
+            // data
+            _data[idx++] = (byte)dfu;
+            _data[idx++] = (byte)delay_ms;
+            _data[idx++] = (byte)(delay_ms >> 8);
+            // send
+            Send(new BgApiCommand() { Data = _data }, true);
+        }
+
         public class ble_msg_system_boot_evt_t : BgApiEvent
         {
             public int major;
@@ -2949,6 +3155,11 @@ namespace BgApiDriver {
         public class ble_msg_system_protocol_error_evt_t : BgApiEvent
         {
             public int reason;
+        }
+
+        public class ble_msg_system_usb_enumerated_evt_t : BgApiEvent
+        {
+            public int state;
         }
 
         public class ble_msg_flash_ps_key_evt_t : BgApiEvent
@@ -3142,6 +3353,10 @@ namespace BgApiDriver {
             public int output;
         }
 
+        public class ble_msg_hardware_radio_error_evt_t : BgApiEvent
+        {
+        }
+
         public class ble_msg_dfu_boot_evt_t : BgApiEvent
         {
             public long version;
@@ -3180,6 +3395,11 @@ namespace BgApiDriver {
         protected virtual void ble_evt_system_protocol_error(ble_msg_system_protocol_error_evt_t arg)
         {
             log("ble_evt_system_protocol_error");
+        }
+
+        protected virtual void ble_evt_system_usb_enumerated(ble_msg_system_usb_enumerated_evt_t arg)
+        {
+            log("ble_evt_system_usb_enumerated");
         }
 
         protected virtual void ble_evt_flash_ps_key(ble_msg_flash_ps_key_evt_t arg)
@@ -3317,6 +3537,11 @@ namespace BgApiDriver {
             log("ble_evt_hardware_analog_comparator_status");
         }
 
+        protected virtual void ble_evt_hardware_radio_error(ble_msg_hardware_radio_error_evt_t arg)
+        {
+            log("ble_evt_hardware_radio_error");
+        }
+
         protected virtual void ble_evt_dfu_boot(ble_msg_dfu_boot_evt_t arg)
         {
             log("ble_evt_dfu_boot");
@@ -3408,6 +3633,15 @@ namespace BgApiDriver {
                                     s.reason = buffer[idx+0] | (buffer[idx+1] << 8); idx+=2;
                                     check(idx, SIZE_HEADER + _length);
                                     ble_evt_system_protocol_error(s);
+                                    res = s;
+                                }
+                                break;
+                            case (byte)ble_event_ids.ble_evt_system_usb_enumerated_id:
+                                {
+                                    ble_msg_system_usb_enumerated_evt_t s = new ble_msg_system_usb_enumerated_evt_t();
+                                    s.state = buffer[idx++];
+                                    check(idx, SIZE_HEADER + _length);
+                                    ble_evt_system_usb_enumerated(s);
                                     res = s;
                                 }
                                 break;
@@ -3811,6 +4045,14 @@ namespace BgApiDriver {
                                     res = s;
                                 }
                                 break;
+                            case (byte)ble_event_ids.ble_evt_hardware_radio_error_id:
+                                {
+                                    ble_msg_hardware_radio_error_evt_t s = new ble_msg_hardware_radio_error_evt_t();
+                                    check(idx, SIZE_HEADER + _length);
+                                    ble_evt_hardware_radio_error(s);
+                                    res = s;
+                                }
+                                break;
                             default:
                                 throw new BgApiException(string.Format("Unknown event id 0x{0}", buffer[3].ToString("X2")));
                         }
@@ -4029,6 +4271,25 @@ namespace BgApiDriver {
                                     }
                                     check(idx, SIZE_HEADER + _length);
                                     //ble_cmd_system_aes_decrypt(s);
+                                    res = s;
+                                }
+                                break;
+                            case (byte)ble_command_ids.ble_cmd_system_usb_enumeration_status_get_id:
+                                {
+                                    ble_msg_system_usb_enumeration_status_get_rsp_t s = new ble_msg_system_usb_enumeration_status_get_rsp_t();
+                                    s.result = buffer[idx+0] | (buffer[idx+1] << 8); idx+=2;
+                                    s.status = buffer[idx++];
+                                    check(idx, SIZE_HEADER + _length);
+                                    //ble_cmd_system_usb_enumeration_status_get(s);
+                                    res = s;
+                                }
+                                break;
+                            case (byte)ble_command_ids.ble_cmd_system_get_bootloader_crc_id:
+                                {
+                                    ble_msg_system_get_bootloader_crc_rsp_t s = new ble_msg_system_get_bootloader_crc_rsp_t();
+                                    s.crc = buffer[idx+0] | (buffer[idx+1] << 8); idx+=2;
+                                    check(idx, SIZE_HEADER + _length);
+                                    //ble_cmd_system_get_bootloader_crc(s);
                                     res = s;
                                 }
                                 break;
@@ -4509,6 +4770,15 @@ namespace BgApiDriver {
                                     res = s;
                                 }
                                 break;
+                            case (byte)ble_command_ids.ble_cmd_sm_set_pairing_distribution_keys_id:
+                                {
+                                    ble_msg_sm_set_pairing_distribution_keys_rsp_t s = new ble_msg_sm_set_pairing_distribution_keys_rsp_t();
+                                    s.result = buffer[idx+0] | (buffer[idx+1] << 8); idx+=2;
+                                    check(idx, SIZE_HEADER + _length);
+                                    //ble_cmd_sm_set_pairing_distribution_keys(s);
+                                    res = s;
+                                }
+                                break;
                             default:
                                 throw new BgApiException(string.Format("Unknown response id 0x{0}", buffer[3].ToString("X2")));
                         }
@@ -4622,6 +4892,15 @@ namespace BgApiDriver {
                                     s.result = buffer[idx+0] | (buffer[idx+1] << 8); idx+=2;
                                     check(idx, SIZE_HEADER + _length);
                                     //ble_cmd_gap_set_initiating_con_parameters(s);
+                                    res = s;
+                                }
+                                break;
+                            case (byte)ble_command_ids.ble_cmd_gap_set_nonresolvable_address_id:
+                                {
+                                    ble_msg_gap_set_nonresolvable_address_rsp_t s = new ble_msg_gap_set_nonresolvable_address_rsp_t();
+                                    s.result = buffer[idx+0] | (buffer[idx+1] << 8); idx+=2;
+                                    check(idx, SIZE_HEADER + _length);
+                                    //ble_cmd_gap_set_nonresolvable_address(s);
                                     res = s;
                                 }
                                 break;
@@ -4832,6 +5111,24 @@ namespace BgApiDriver {
                                     res = s;
                                 }
                                 break;
+                            case (byte)ble_command_ids.ble_cmd_hardware_sleep_enable_id:
+                                {
+                                    ble_msg_hardware_sleep_enable_rsp_t s = new ble_msg_hardware_sleep_enable_rsp_t();
+                                    s.result = buffer[idx+0] | (buffer[idx+1] << 8); idx+=2;
+                                    check(idx, SIZE_HEADER + _length);
+                                    //ble_cmd_hardware_sleep_enable(s);
+                                    res = s;
+                                }
+                                break;
+                            case (byte)ble_command_ids.ble_cmd_hardware_get_timestamp_id:
+                                {
+                                    ble_msg_hardware_get_timestamp_rsp_t s = new ble_msg_hardware_get_timestamp_rsp_t();
+                                    s.value = buffer[idx+0] + buffer[idx+1] * 0x100 + buffer[idx+2] * 0x10000 + buffer[idx+3] * (long)0x1000000; idx += 4;
+                                    check(idx, SIZE_HEADER + _length);
+                                    //ble_cmd_hardware_get_timestamp(s);
+                                    res = s;
+                                }
+                                break;
                             default:
                                 throw new BgApiException(string.Format("Unknown response id 0x{0}", buffer[3].ToString("X2")));
                         }
@@ -4938,6 +5235,15 @@ namespace BgApiDriver {
                                     s.result = buffer[idx+0] | (buffer[idx+1] << 8); idx+=2;
                                     check(idx, SIZE_HEADER + _length);
                                     //ble_cmd_dfu_flash_upload_finish(s);
+                                    res = s;
+                                }
+                                break;
+                            case (byte)ble_command_ids.ble_cmd_dfu_get_bootloader_crc_id:
+                                {
+                                    ble_msg_dfu_get_bootloader_crc_rsp_t s = new ble_msg_dfu_get_bootloader_crc_rsp_t();
+                                    s.crc = buffer[idx+0] | (buffer[idx+1] << 8); idx+=2;
+                                    check(idx, SIZE_HEADER + _length);
+                                    //ble_cmd_dfu_get_bootloader_crc(s);
                                     res = s;
                                 }
                                 break;
