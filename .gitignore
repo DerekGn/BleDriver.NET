@@ -328,7 +328,4 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
-EkoCore/MockAudio/Test.wav
-EkoCore/MockAudio/clean_audio_30sample_avg.wav
-EkoCore/MockAudio/Test.wav
-EkoCore/MockAudio/Test.wav
+.axoCover/
