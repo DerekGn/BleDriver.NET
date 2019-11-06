@@ -43,6 +43,11 @@ namespace BgApiApp
             base.Open();
         }
 
+        public BlueGigaBleDevice CreateBleDevice(BlueGigaBleAdvertisement advertisement)
+        {
+            return new BlueGigaBleDevice(this, advertisement);
+        }
+
         public override string ToString()
         {
             return base.ToString();
@@ -140,8 +145,6 @@ namespace BgApiApp
 
         protected override void ble_evt_gap_scan_response(ble_msg_gap_scan_response_evt_t arg)
         {
-            Log.Information(BitConverter.ToString(arg.data));
-
             var advertisement = Advertisements.FirstOrDefault(a => a.Address == arg.sender.GetValue());
 
             if (advertisement != null)

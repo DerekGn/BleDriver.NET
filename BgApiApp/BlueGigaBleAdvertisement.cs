@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using BgApiDriver;
 using static BgApiDriver.BgApi;
 
 namespace BgApiApp
@@ -12,6 +11,8 @@ namespace BgApiApp
         public BlueGigaBleAdvertisement(ble_msg_gap_scan_response_evt_t scanResponse)
         {
             Services = new List<string>();
+
+            ScanResponseEvent = scanResponse;
 
             ParseEvent(scanResponse);
         }
@@ -41,6 +42,8 @@ namespace BgApiApp
         public byte[] ManufacturerSpecificData { get; private set; }
 
         internal DateTime Timestamp { get; private set; }
+
+        internal ble_msg_gap_scan_response_evt_t ScanResponseEvent { get; private set; }
 
         internal void Update(ble_msg_gap_scan_response_evt_t arg)
         {

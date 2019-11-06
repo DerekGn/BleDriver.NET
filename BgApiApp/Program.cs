@@ -31,9 +31,19 @@ namespace BgApiApp
 
                 _manualResetEvent.WaitOne();
 
-                //var bled112Device = bled112.CreateBleDevice(bled112.Advertisements.First());
+                var advertisement = bled112.Advertisements.First(a => a.Name.StartsWith("Eko"));
+
+                Log.Information($"Connecting to [{advertisement.Address}] [{advertisement.Name}]");
+
+                var bled112Device = bled112.CreateBleDevice(advertisement);
+
+                bled112Device.Connect();
 
                 Thread.Sleep(TimeSpan.FromMinutes(1));
+
+                Log.Information($"Disconnecting from [{advertisement.Address}] [{advertisement.Name}]");
+
+                bled112Device.Disconnect();
 
                 bled112.Close();
             }
@@ -45,7 +55,7 @@ namespace BgApiApp
 
         private static void Bled112Updated(object sender, BleDeviceEventArgs e)
         {
-            Log.Information($"Device Updated Address: [{e.Advertisement.Address}] Name: [{e.Advertisement.Name}] Rssi: [{e.Advertisement.Rssi}]");
+            Log.Debug($"Device Updated Address: [{e.Advertisement.Address}] Name: [{e.Advertisement.Name}] Rssi: [{e.Advertisement.Rssi}]");
 
             if(e.Advertisement.Name.StartsWith("Eko"))
             {

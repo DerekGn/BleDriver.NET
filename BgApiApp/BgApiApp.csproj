@@ -55,6 +55,7 @@
     <Compile Include="BleDeviceEventArgs.cs" />
     <Compile Include="BlueGigaBleAdapter.cs" />
     <Compile Include="BlueGigaBleAdvertisement.cs" />
+    <Compile Include="BlueGigaBleDevice.cs" />
     <Compile Include="PacketType.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
