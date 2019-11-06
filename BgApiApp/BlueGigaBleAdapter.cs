@@ -1,4 +1,10 @@
-﻿using BgApiDriver;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using BgApiDriver;
+
+using Serilog;
 
 namespace BgApiApp
 {
@@ -6,7 +12,16 @@ namespace BgApiApp
     {
         public BlueGigaBleAdapter(string port) : base(port)
         {
+            Advertisements = new List<BlueGigaBleAdvertisement>();
         }
+
+        public event EventHandler<BleDeviceEventArgs> Added;
+
+        public event EventHandler<BleDeviceEventArgs> Removed;
+
+        public event EventHandler<BleDeviceEventArgs> Updated;
+
+        public IList<BlueGigaBleAdvertisement> Advertisements { get; private set; }
 
         public override void Close()
         {
@@ -125,7 +140,20 @@ namespace BgApiApp
 
         protected override void ble_evt_gap_scan_response(ble_msg_gap_scan_response_evt_t arg)
         {
-            base.ble_evt_gap_scan_response(arg);
+            var advertisement = Advertisements.FirstOrDefault(a => a.Address == arg.sender.GetValue());
+
+            if (advertisement != null)
+            {
+                advertisement.Update(arg);
+            }
+            else
+            {
+                var blueGigaBleAdvertisement = new BlueGigaBleAdvertisement(arg);
+
+                Advertisements.Add(blueGigaBleAdvertisement);
+
+                OnAdvertisementAdded(blueGigaBleAdvertisement);
+            }
         }
 
         protected override void ble_evt_hardware_adc_result(ble_msg_hardware_adc_result_evt_t arg)
@@ -225,7 +253,12 @@ namespace BgApiApp
 
         protected override void log(string msg)
         {
-            base.log(msg);
+            Log.Debug(msg);
+        }
+
+        private void OnAdvertisementAdded(BlueGigaBleAdvertisement blueGigaBleAdvertisement)
+        {
+            Added?.Invoke(this, new BleDeviceEventArgs(blueGigaBleAdvertisement));
         }
     }
 }

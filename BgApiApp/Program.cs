@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Serilog;
+using System;
 using System.Threading;
 using static BgApiDriver.BgApi;
 
@@ -8,9 +9,15 @@ namespace BgApiApp
     {
         static void Main(string[] args)
         {
+            Log.Logger = new LoggerConfiguration()
+               .MinimumLevel.Debug()
+               .WriteTo.Console()
+               .CreateLogger();
+
             try
             {
                 BlueGigaBleAdapter bled112 = new BlueGigaBleAdapter("COM3");
+                bled112.Added += BleDeviceAdded;
 
                 bled112.Open();
 
@@ -18,7 +25,7 @@ namespace BgApiApp
 
                 bled112.ble_cmd_gap_discover((int) gap_discover_mode.gap_discover_observation);
 
-                Thread.Sleep(10000);
+                Thread.Sleep(TimeSpan.FromMinutes(1));
 
                 bled112.Close();
             }
@@ -26,6 +33,11 @@ namespace BgApiApp
             {
                 Console.WriteLine(ex.ToString());
             }
+        }
+
+        private static void BleDeviceAdded(object sender, BleDeviceEventArgs e)
+        {
+            Log.Information($"Device Added Name: [{e.Advertisement.Name}]");
         }
     }
 }
