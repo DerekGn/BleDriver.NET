@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="AddressType.cs" />
     <Compile Include="BdAddrExtensions.cs" />
+    <Compile Include="BleAdvertisementFlags.cs" />
     <Compile Include="BleDeviceEventArgs.cs" />
     <Compile Include="BlueGigaBleAdapter.cs" />
     <Compile Include="BlueGigaBleAdvertisement.cs" />

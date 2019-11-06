@@ -140,19 +140,23 @@ namespace BgApiApp
 
         protected override void ble_evt_gap_scan_response(ble_msg_gap_scan_response_evt_t arg)
         {
+            Log.Information(BitConverter.ToString(arg.data));
+
             var advertisement = Advertisements.FirstOrDefault(a => a.Address == arg.sender.GetValue());
 
             if (advertisement != null)
             {
                 advertisement.Update(arg);
+
+                OnAdvertisementUpdated(advertisement);
             }
             else
             {
-                var blueGigaBleAdvertisement = new BlueGigaBleAdvertisement(arg);
+                advertisement = new BlueGigaBleAdvertisement(arg);
 
-                Advertisements.Add(blueGigaBleAdvertisement);
+                Advertisements.Add(advertisement);
 
-                OnAdvertisementAdded(blueGigaBleAdvertisement);
+                OnAdvertisementAdded(advertisement);
             }
         }
 
@@ -169,11 +173,6 @@ namespace BgApiApp
         protected override void ble_evt_hardware_io_port_status(ble_msg_hardware_io_port_status_evt_t arg)
         {
             base.ble_evt_hardware_io_port_status(arg);
-        }
-
-        protected override void ble_evt_hardware_radio_error(ble_msg_hardware_radio_error_evt_t arg)
-        {
-            base.ble_evt_hardware_radio_error(arg);
         }
 
         protected override void ble_evt_hardware_soft_timer(ble_msg_hardware_soft_timer_evt_t arg)
@@ -241,11 +240,6 @@ namespace BgApiApp
             base.ble_evt_system_script_failure(arg);
         }
 
-        protected override void ble_evt_system_usb_enumerated(ble_msg_system_usb_enumerated_evt_t arg)
-        {
-            base.ble_evt_system_usb_enumerated(arg);
-        }
-
         protected override void HandleEvent(BgApiEvent evt)
         {
             base.HandleEvent(evt);
@@ -256,9 +250,14 @@ namespace BgApiApp
             Log.Debug(msg);
         }
 
-        private void OnAdvertisementAdded(BlueGigaBleAdvertisement blueGigaBleAdvertisement)
+        private void OnAdvertisementAdded(BlueGigaBleAdvertisement advertisement)
         {
-            Added?.Invoke(this, new BleDeviceEventArgs(blueGigaBleAdvertisement));
+            Added?.Invoke(this, new BleDeviceEventArgs(advertisement));
+        }
+
+        private void OnAdvertisementUpdated(BlueGigaBleAdvertisement advertisement)
+        {
+            Updated?.Invoke(this, new BleDeviceEventArgs(advertisement));
         }
     }
 }
