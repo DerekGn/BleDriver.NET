@@ -25,9 +25,9 @@ namespace BgApiApp
 
                 bled112.Open();
 
-                bled112.ble_cmd_gap_set_scan_parameters(0x4B, 0x32, 1);
+                var result = bled112.ble_cmd_gap_set_scan_parameters(0x4B, 0x32, 1);
 
-                bled112.ble_cmd_gap_discover((int) gap_discover_mode.gap_discover_observation);
+                var discoverResult = bled112.ble_cmd_gap_discover((int) gap_discover_mode.gap_discover_observation);
 
                 _manualResetEvent.WaitOne();
 
@@ -38,6 +38,8 @@ namespace BgApiApp
                 var bled112Device = bled112.CreateBleDevice(advertisement);
 
                 bled112Device.Connect();
+
+                //var services = bled112Device.GetGattServices();
 
                 Thread.Sleep(TimeSpan.FromMinutes(1));
 

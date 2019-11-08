@@ -1,4 +1,6 @@
-﻿using System;
+﻿using BgApiDriver;
+using System;
+using System.Collections.Generic;
 
 namespace BgApiApp
 {
@@ -36,6 +38,13 @@ namespace BgApiApp
             //_blueGigaBleAdapter.WaitForEvent();
         }
 
+        //public IList<BlueGigaService> GetGattServices()
+        //{
+        //    var response = _blueGigaBleAdapter.ble_cmd_attclient_read_by_group_type(_connectioHandle, 0x1, int.MaxValue, new byte[] { 0, 0x28});
+
+
+        //}
+
         public void Disconnect()
         {
             var response = _blueGigaBleAdapter.ble_cmd_connection_disconnect(_connectioHandle);
@@ -47,6 +56,18 @@ namespace BgApiApp
             }
 #warning TODO wait for event signal
             //_blueGigaBleAdapter.WaitForEvent();
+        }
+
+        private void ExecuteOperation(Func<BgApiResponse> operation, Action<BgApiResponse> processResponse)
+        {
+            var response = operation();
+
+            if(response.result != 0)
+            {
+                throw new Exception($"something bad: {response.result}");
+            }
+
+//            _blueGigaBleAdapter.WaitForCompletion(response.Id);
         }
     }
 }
