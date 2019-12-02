@@ -1,6 +1,5 @@
-﻿using BgApiDriver;
-using System;
-using System.Collections.Generic;
+﻿using System;
+using BgApiDriver;
 
 namespace BgApiApp
 {
@@ -26,10 +25,10 @@ namespace BgApiApp
                 76, // 72 * 1.25ms
                 100, // 100 * 10ms
                 0);
+
             if(response.result != 0)
             {
-#warning TODO proper exception 
-                throw new Exception($"something bad: {response.result}");
+                throw new BlueGigaBleException(response.result);
             }
 
             _connectioHandle = response.connection_handle;
@@ -51,8 +50,7 @@ namespace BgApiApp
 
             if (response.result != 0)
             {
-#warning TODO proper exception 
-                throw new Exception($"something bad: {response.result}");
+                throw new BlueGigaBleException(response.result);
             }
 #warning TODO wait for event signal
             //_blueGigaBleAdapter.WaitForEvent();
@@ -64,7 +62,7 @@ namespace BgApiApp
 
             if(response.result != 0)
             {
-                throw new Exception($"something bad: {response.result}");
+                throw new BlueGigaBleException(response.result);
             }
 
 //            _blueGigaBleAdapter.WaitForCompletion(response.Id);

@@ -25,9 +25,9 @@ namespace BgApiApp
 
                 bled112.Open();
 
-                var result = bled112.ble_cmd_gap_set_scan_parameters(0x4B, 0x32, 1);
+                Console.WriteLine($"Scan result [{bled112.ble_cmd_gap_set_scan_parameters(0x4B, 0x32, 1).result}]");
 
-                var discoverResult = bled112.ble_cmd_gap_discover((int) gap_discover_mode.gap_discover_observation);
+                Console.WriteLine($"Discover result [{bled112.ble_cmd_gap_discover((int)gap_discover_mode.gap_discover_observation).result}]");
 
                 _manualResetEvent.WaitOne();
 
