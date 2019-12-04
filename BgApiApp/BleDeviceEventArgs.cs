@@ -2,9 +2,9 @@
 {
     public class BleDeviceEventArgs
     {
-        public BlueGigaBleAdvertisement Advertisement { get; private set; }
+        public BlueGigaAdvertisement Advertisement { get; private set; }
 
-        public BleDeviceEventArgs(BlueGigaBleAdvertisement blueGigaBleAdvertisement)
+        public BleDeviceEventArgs(BlueGigaAdvertisement blueGigaBleAdvertisement)
         {
             Advertisement = blueGigaBleAdvertisement;
         }

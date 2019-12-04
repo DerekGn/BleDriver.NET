@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
+using BgApiApp.Exceptions;
 using BgApiDriver;
 
 using Serilog;
@@ -10,9 +12,13 @@ namespace BgApiApp
 {
     public class BlueGigaBleAdapter : BgApi
     {
+        private BlockingCollection<BgApiEvent> _events;
+
         public BlueGigaBleAdapter(string port) : base(port)
         {
-            Advertisements = new List<BlueGigaBleAdvertisement>();
+            Advertisements = new List<BlueGigaAdvertisement>();
+
+            _events = new BlockingCollection<BgApiEvent>();
         }
 
         public event EventHandler<BleDeviceEventArgs> Added;
@@ -21,7 +27,7 @@ namespace BgApiApp
 
         public event EventHandler<BleDeviceEventArgs> Updated;
 
-        public IList<BlueGigaBleAdvertisement> Advertisements { get; private set; }
+        public IList<BlueGigaAdvertisement> Advertisements { get; private set; }
 
         public override void Close()
         {
@@ -43,9 +49,34 @@ namespace BgApiApp
             base.Open();
         }
 
-        public BlueGigaBleDevice CreateBleDevice(BlueGigaBleAdvertisement advertisement)
+        public BlueGigaDevice CreateBleDevice(BlueGigaAdvertisement advertisement)
         {
-            return new BlueGigaBleDevice(this, advertisement);
+            return new BlueGigaDevice(this, advertisement);
+        }
+
+        internal void WaitForEvent(Func<BgApiEvent, EventProcessingResult> processEvent)
+        {
+            do
+            {
+                if(_events.TryTake(out var evt, 1000))
+                {
+                    var result = processEvent(evt);
+
+                    if(result == EventProcessingResult.Complete)
+                    {
+                        break;
+                    }
+
+                    if (result == EventProcessingResult.Skip)
+                    {
+                        _events.Add(evt);
+                    }
+                }
+                else
+                {
+                    throw new BlueGigaBleTimeoutException();
+                }
+            } while (true);
         }
 
         public override string ToString()
@@ -61,6 +92,8 @@ namespace BgApiApp
         protected override void ble_evt_attclient_attribute_value(ble_msg_attclient_attribute_value_evt_t arg)
         {
             base.ble_evt_attclient_attribute_value(arg);
+
+            _events.Add(arg);
         }
 
         protected override void ble_evt_attclient_find_information_found(ble_msg_attclient_find_information_found_evt_t arg)
@@ -71,6 +104,8 @@ namespace BgApiApp
         protected override void ble_evt_attclient_group_found(ble_msg_attclient_group_found_evt_t arg)
         {
             base.ble_evt_attclient_group_found(arg);
+
+            _events.Add(arg);
         }
 
         protected override void ble_evt_attclient_indicated(ble_msg_attclient_indicated_evt_t arg)
@@ -81,6 +116,8 @@ namespace BgApiApp
         protected override void ble_evt_attclient_procedure_completed(ble_msg_attclient_procedure_completed_evt_t arg)
         {
             base.ble_evt_attclient_procedure_completed(arg);
+
+            _events.Add(arg);
         }
 
         protected override void ble_evt_attclient_read_multiple_response(ble_msg_attclient_read_multiple_response_evt_t arg)
@@ -106,6 +143,8 @@ namespace BgApiApp
         protected override void ble_evt_connection_disconnected(ble_msg_connection_disconnected_evt_t arg)
         {
             base.ble_evt_connection_disconnected(arg);
+
+            _events.Add(arg);
         }
 
         protected override void ble_evt_connection_feature_ind(ble_msg_connection_feature_ind_evt_t arg)
@@ -121,6 +160,8 @@ namespace BgApiApp
         protected override void ble_evt_connection_status(ble_msg_connection_status_evt_t arg)
         {
             base.ble_evt_connection_status(arg);
+
+            _events.Add(arg);
         }
 
         protected override void ble_evt_connection_version_ind(ble_msg_connection_version_ind_evt_t arg)
@@ -155,7 +196,7 @@ namespace BgApiApp
             }
             else
             {
-                advertisement = new BlueGigaBleAdvertisement(arg);
+                advertisement = new BlueGigaAdvertisement(arg);
 
                 Advertisements.Add(advertisement);
 
@@ -253,12 +294,12 @@ namespace BgApiApp
             Log.Debug(msg);
         }
 
-        private void OnAdvertisementAdded(BlueGigaBleAdvertisement advertisement)
+        private void OnAdvertisementAdded(BlueGigaAdvertisement advertisement)
         {
             Added?.Invoke(this, new BleDeviceEventArgs(advertisement));
         }
 
-        private void OnAdvertisementUpdated(BlueGigaBleAdvertisement advertisement)
+        private void OnAdvertisementUpdated(BlueGigaAdvertisement advertisement)
         {
             Updated?.Invoke(this, new BleDeviceEventArgs(advertisement));
         }

@@ -39,9 +39,38 @@ namespace BgApiApp
 
                 bled112Device.Connect();
 
-                //var services = bled112Device.GetGattServices();
+                var services = bled112Device.GetGattServices();
 
-                Thread.Sleep(TimeSpan.FromMinutes(1));
+                Log.Information($"Services Count: [{services.Count}]");
+
+                foreach (var service in services)
+                {
+                    Log.Information($"Service UUID: [{service.Uuid}]");
+                }
+
+                var batteryService = services.FirstOrDefault(s => s.Uuid == "180F");
+
+                if(batteryService == null)
+                {
+                    Log.Information("Battery Service not found");
+                }
+                else
+                {
+                    var characteristics = batteryService.GetGattCharacteristics();
+
+                    var batteryCharacteristic = characteristics.FirstOrDefault(s => s.Uuid == "");
+
+                    if(batteryCharacteristic == null)
+                    {
+                        Log.Information("Battery Service characteristic not found");
+                    }
+                    else
+                    {
+                        var value = batteryCharacteristic.Read();
+                    }
+                }
+
+                Thread.Sleep(TimeSpan.FromSeconds(20));
 
                 Log.Information($"Disconnecting from [{advertisement.Address}] [{advertisement.Name}]");
 

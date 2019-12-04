@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BgApiApp
+namespace BgApiApp.Exceptions
 {
     [Serializable]
     public class BlueGigaBleException : Exception

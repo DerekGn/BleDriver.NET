@@ -50,14 +50,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AddressType.cs" />
+    <Compile Include="BaseBlueGiga.cs" />
     <Compile Include="BdAddrExtensions.cs" />
     <Compile Include="BleAdvertisementFlags.cs" />
+    <Compile Include="BlueGigaAddressType.cs" />
+    <Compile Include="BlueGigaConnectionStatus.cs" />
     <Compile Include="BleDeviceEventArgs.cs" />
     <Compile Include="BlueGigaBleAdapter.cs" />
-    <Compile Include="BlueGigaBleAdvertisement.cs" />
-    <Compile Include="BlueGigaBleDevice.cs" />
-    <Compile Include="BlueGigaBleException.cs" />
+    <Compile Include="BlueGigaAdvertisement.cs" />
+    <Compile Include="BlueGigaDevice.cs" />
+    <Compile Include="BlueGigaCharacteristic.cs" />
+    <Compile Include="Exceptions\BlueGigaBleException.cs" />
+    <Compile Include="BlueGigaConnection.cs" />
     <Compile Include="BlueGigaService.cs" />
+    <Compile Include="EventProcessingResult.cs" />
+    <Compile Include="Exceptions\BlueGigaBleTimeoutException.cs" />
     <Compile Include="PacketType.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

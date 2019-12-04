@@ -6,9 +6,9 @@ using static BgApiDriver.BgApi;
 
 namespace BgApiApp
 {
-    public class BlueGigaBleAdvertisement
+    public class BlueGigaAdvertisement
     {
-        public BlueGigaBleAdvertisement(ble_msg_gap_scan_response_evt_t scanResponse)
+        public BlueGigaAdvertisement(ble_msg_gap_scan_response_evt_t scanResponse)
         {
             Services = new List<string>();
 
