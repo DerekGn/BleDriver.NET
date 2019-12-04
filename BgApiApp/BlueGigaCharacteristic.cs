@@ -1,14 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
 using BgApiDriver;
+using static BgApiDriver.BgApi;
 
 namespace BgApiApp
 {
     public class BlueGigaCharacteristic : BaseBlueGiga
     {
-        private BgApi.ble_msg_attclient_attribute_value_evt_t _attClientAttributeValueEvent;
+        private ble_msg_attclient_attribute_value_evt_t _attClientAttributeValueEvent;
         private BlueGigaBleAdapter _adapter;
 
         public BlueGigaCharacteristic(BlueGigaBleAdapter adapter, BgApi.ble_msg_attclient_attribute_value_evt_t attClientAttributeValueEvent)
@@ -33,7 +35,6 @@ namespace BgApiApp
         }
 
         public int Handle => _attClientAttributeValueEvent.atthandle;
-
         public bool IsBroadcastSupported { get; }
         public bool IsReadSupported { get; }
         public bool IsWriteWithoutAcknowledgmentSupported { get; }
@@ -50,12 +51,32 @@ namespace BgApiApp
         {
             var response = ExecuteOperation(() =>
             {
-                return _adapter.ble_cmd_attributes_read(
+                return _adapter.ble_cmd_attclient_read_by_handle(
                     _attClientAttributeValueEvent.connection,
                     _attClientAttributeValueEvent.atthandle);
             });
 
-            return response.value.ToList().AsReadOnly();
+            List<byte> result = null;
+
+            _adapter.WaitForEvent((evt) =>
+            {
+                if (evt is ble_msg_attclient_attribute_value_evt_t attClientAttributeValueEvent)
+                {
+                    result = evt.Data.ToList();
+
+                    return EventProcessingResult.Processed;
+                }
+                else if (evt is ble_msg_attclient_procedure_completed_evt_t attClientProcedureCompleteEvent)
+                {
+                    return EventProcessingResult.Complete;
+                }
+                else
+                {
+                    return EventProcessingResult.Skip;
+                }
+            });
+
+            return result.AsReadOnly();
         }
     }
 }

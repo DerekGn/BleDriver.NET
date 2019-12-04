@@ -1,4 +1,5 @@
-﻿using Serilog;
+﻿using BgApiApp.Exceptions;
+using Serilog;
 using System;
 using System.Linq;
 using System.Threading;
@@ -17,9 +18,12 @@ namespace BgApiApp
                .WriteTo.Console()
                .CreateLogger();
 
+            BlueGigaDevice bled112Device = null;
+            BlueGigaBleAdapter bled112 = null;
+
             try
             {
-                BlueGigaBleAdapter bled112 = new BlueGigaBleAdapter("COM3");
+                bled112 = new BlueGigaBleAdapter("COM3");
                 bled112.Added += BleDeviceAdded;
                 bled112.Updated += Bled112Updated;
 
@@ -35,7 +39,7 @@ namespace BgApiApp
 
                 Log.Information($"Connecting to [{advertisement.Address}] [{advertisement.Name}]");
 
-                var bled112Device = bled112.CreateBleDevice(advertisement);
+                bled112Device = bled112.CreateBleDevice(advertisement);
 
                 bled112Device.Connect();
 
@@ -58,7 +62,7 @@ namespace BgApiApp
                 {
                     var characteristics = batteryService.GetGattCharacteristics();
 
-                    var batteryCharacteristic = characteristics.FirstOrDefault(s => s.Uuid == "");
+                    var batteryCharacteristic = characteristics.FirstOrDefault(s => s.Uuid == "2A19");
 
                     if(batteryCharacteristic == null)
                     {
@@ -73,14 +77,26 @@ namespace BgApiApp
                 Thread.Sleep(TimeSpan.FromSeconds(20));
 
                 Log.Information($"Disconnecting from [{advertisement.Address}] [{advertisement.Name}]");
-
-                bled112Device.Disconnect();
-
-                bled112.Close();
+            }
+            catch(BlueGigaBleException ex)
+            {
+                Console.WriteLine($"Result: {ex.Result:X}");
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
+            }
+            finally
+            {
+                if(bled112Device != null)
+                {
+                    bled112Device.Disconnect();
+                }
+
+                if(bled112 != null)
+                {
+                    bled112.Close();
+                }
             }
         }
 
