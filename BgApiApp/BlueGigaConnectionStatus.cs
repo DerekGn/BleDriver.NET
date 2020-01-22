@@ -26,7 +26,7 @@ namespace BgApiApp
         /// <summary>
         /// Connection handle
         /// </summary>
-        public int Connection => _connectionStatusEvent.connection;
+        public int ConnectionHandle => _connectionStatusEvent.connection;
         /// <summary>
         /// Current connection interval (units of 1.25ms)
         /// </summary>

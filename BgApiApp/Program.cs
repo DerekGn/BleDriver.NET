@@ -1,6 +1,7 @@
 ﻿using BgApiApp.Exceptions;
 using Serilog;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using static BgApiDriver.BgApi;
@@ -18,7 +19,6 @@ namespace BgApiApp
                .WriteTo.Console()
                .CreateLogger();
 
-            BlueGigaDevice bled112Device = null;
             BlueGigaBleAdapter bled112 = null;
 
             try
@@ -33,50 +33,13 @@ namespace BgApiApp
 
                 Console.WriteLine($"Discover result [{bled112.ble_cmd_gap_discover((int)gap_discover_mode.gap_discover_observation).result}]");
 
-                _manualResetEvent.WaitOne();
+                ConnectAndRead(bled112);
 
-                var advertisement = bled112.Advertisements.First(a => a.Name.StartsWith("Eko"));
+                Console.WriteLine($"Discover result [{bled112.ble_cmd_gap_discover((int)gap_discover_mode.gap_discover_observation).result}]");
 
-                Log.Information($"Connecting to [{advertisement.Address}] [{advertisement.Name}]");
+                _manualResetEvent.Reset();
 
-                bled112Device = bled112.CreateBleDevice(advertisement);
-
-                bled112Device.Connect();
-
-                var services = bled112Device.GetGattServices();
-
-                Log.Information($"Services Count: [{services.Count}]");
-
-                foreach (var service in services)
-                {
-                    Log.Information($"Service UUID: [{service.Uuid}]");
-                }
-
-                var batteryService = services.FirstOrDefault(s => s.Uuid == "180F");
-
-                if(batteryService == null)
-                {
-                    Log.Information("Battery Service not found");
-                }
-                else
-                {
-                    var characteristics = batteryService.GetGattCharacteristics();
-
-                    var batteryCharacteristic = characteristics.FirstOrDefault(s => s.Uuid == "2A19");
-
-                    if(batteryCharacteristic == null)
-                    {
-                        Log.Information("Battery Service characteristic not found");
-                    }
-                    else
-                    {
-                        var value = batteryCharacteristic.Read();
-                    }
-                }
-
-                Thread.Sleep(TimeSpan.FromSeconds(20));
-
-                Log.Information($"Disconnecting from [{advertisement.Address}] [{advertisement.Name}]");
+                ConnectAndRead(bled112);
             }
             catch(BlueGigaBleException ex)
             {
@@ -88,14 +51,78 @@ namespace BgApiApp
             }
             finally
             {
-                if(bled112Device != null)
-                {
-                    bled112Device.Disconnect();
-                }
-
                 if(bled112 != null)
                 {
                     bled112.Close();
+                }
+            }
+        }
+
+        private static void ConnectAndRead(BlueGigaBleAdapter bled112)
+        {
+            BlueGigaDevice bled112Device = null;
+
+            try
+            {
+                _manualResetEvent.WaitOne();
+
+                var advertisement = bled112.Advertisements.First(a => a.Name.StartsWith("Eko"));
+
+                Log.Information($"Connecting to [{advertisement.Address}] [{advertisement.Name}]");
+
+                bled112Device = bled112.CreateBleDevice(advertisement);
+
+                bled112Device.Connect();
+
+                bled112Device.EncryptConnection();
+
+                var services = bled112Device.GetGattServices();
+
+                Log.Information($"Services Count: [{services.Count}]");
+
+                foreach (var service in services)
+                {
+                    Log.Information($"Service UUID: [{service.Uuid}]");
+                }
+
+                ReadBattery(services);
+
+                Thread.Sleep(TimeSpan.FromSeconds(5));
+
+                Log.Information($"Disconnecting from [{advertisement.Address}] [{advertisement.Name}]");
+            }
+            finally
+            {
+                if (bled112Device != null)
+                {
+                    bled112Device.Disconnect();
+                }
+            }
+        }
+
+        private static void ReadBattery(IReadOnlyCollection<BlueGigaService> services)
+        {
+            var batteryService = services.FirstOrDefault(s => s.Uuid == "180F");
+
+            if (batteryService == null)
+            {
+                Log.Information("Battery Service not found");
+            }
+            else
+            {
+                var characteristics = batteryService.GetGattCharacteristics();
+
+                var batteryCharacteristic = characteristics.FirstOrDefault(s => s.Uuid == "2A19");
+
+                if (batteryCharacteristic == null)
+                {
+                    Log.Information("Battery Service characteristic not found");
+                }
+                else
+                {
+                    var value = batteryCharacteristic.Read();
+
+                    Log.Information($"Value: [{BitConverter.ToInt16(value.ToArray(), 0)}]");
                 }
             }
         }

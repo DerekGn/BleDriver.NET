@@ -64,16 +64,10 @@ namespace BgApiApp
                 {
                     result = evt.Data.ToList();
 
-                    return EventProcessingResult.Processed;
-                }
-                else if (evt is ble_msg_attclient_procedure_completed_evt_t attClientProcedureCompleteEvent)
-                {
                     return EventProcessingResult.Complete;
                 }
-                else
-                {
-                    return EventProcessingResult.Skip;
-                }
+                
+                return EventProcessingResult.Processed;
             });
 
             return result.AsReadOnly();

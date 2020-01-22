@@ -10,6 +10,10 @@ using Serilog;
 
 namespace BgApiApp
 {
+#warning TODO Prevent reenterant calls while a call is in progress
+#warning TODO Query RSSI on connection
+#warning TODO Add disconnect handling
+
     public class BlueGigaBleAdapter : BgApi
     {
         private BlockingCollection<BgApiEvent> _events;
