@@ -1,9 +1,9 @@
-﻿using System;
+﻿using BgApiDriver;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
-using BgApiDriver;
 using static BgApiDriver.BgApi;
 
 namespace BgApiApp
@@ -13,7 +13,7 @@ namespace BgApiApp
         private ble_msg_attclient_attribute_value_evt_t _attClientAttributeValueEvent;
         private BlueGigaBleAdapter _adapter;
 
-        public BlueGigaCharacteristic(BlueGigaBleAdapter adapter, BgApi.ble_msg_attclient_attribute_value_evt_t attClientAttributeValueEvent)
+        public BlueGigaCharacteristic(BlueGigaBleAdapter adapter, ble_msg_attclient_attribute_value_evt_t attClientAttributeValueEvent)
         {
             _adapter = adapter ?? throw new ArgumentNullException(nameof(adapter));
             _attClientAttributeValueEvent = attClientAttributeValueEvent ?? throw new ArgumentNullException(nameof(attClientAttributeValueEvent));
@@ -71,6 +71,52 @@ namespace BgApiApp
             });
 
             return result.AsReadOnly();
+        }
+
+        public void EnableNotificationAsync()
+        {
+            var response = ExecuteOperation<BgApiResponse>(() =>
+            {
+                //if (IsWriteSupported)
+                    return _adapter.ble_cmd_attclient_attribute_write(_attClientAttributeValueEvent.connection, Handle, new byte[] { 0x01, 0x00 });
+                //else
+                //    return _adapter.ble_cmd_attclient_write_command(_attClientAttributeValueEvent.connection, Handle, new byte[] { 0x01, 0x00 });
+            });
+
+#warning TODO replace with method
+            _adapter.WaitForEvent((evt) =>
+            {
+                if (evt is ble_msg_attclient_procedure_completed_evt_t attClientProcedureCompleteEvent &&
+                        attClientProcedureCompleteEvent.connection == _attClientAttributeValueEvent.connection)
+                {
+                    return EventProcessingResult.Complete;
+                }
+
+                return EventProcessingResult.Skip;
+            });
+        }
+
+        public void DisableNotificationAsync()
+        {
+            var response = ExecuteOperation<BgApiResponse>(() =>
+            {
+                if (IsWriteSupported)
+                    return _adapter.ble_cmd_attclient_attribute_write(_attClientAttributeValueEvent.connection, Handle, new byte[] { 0x00, 0x00 });
+                else
+                    return _adapter.ble_cmd_attclient_write_command(_attClientAttributeValueEvent.connection, Handle, new byte[] { 0x00, 0x00 });
+            });
+
+#warning TODO replace with method
+            _adapter.WaitForEvent((evt) =>
+            {
+                if (evt is ble_msg_attclient_procedure_completed_evt_t attClientProcedureCompleteEvent &&
+                        attClientProcedureCompleteEvent.connection == _attClientAttributeValueEvent.connection)
+                {
+                    return EventProcessingResult.Complete;
+                }
+
+                return EventProcessingResult.Skip;
+            });
         }
     }
 }

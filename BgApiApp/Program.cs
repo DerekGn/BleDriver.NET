@@ -35,11 +35,11 @@ namespace BgApiApp
 
                 ConnectAndRead(bled112);
 
-                Console.WriteLine($"Discover result [{bled112.ble_cmd_gap_discover((int)gap_discover_mode.gap_discover_observation).result}]");
+                //Console.WriteLine($"Discover result [{bled112.ble_cmd_gap_discover((int)gap_discover_mode.gap_discover_observation).result}]");
 
-                _manualResetEvent.Reset();
+                //_manualResetEvent.Reset();
 
-                ConnectAndRead(bled112);
+                //ConnectAndRead(bled112);
             }
             catch(BlueGigaBleException ex)
             {
@@ -87,7 +87,29 @@ namespace BgApiApp
 
                 ReadBattery(services);
 
-                Thread.Sleep(TimeSpan.FromSeconds(5));
+                var dataService = services.FirstOrDefault(s => s.Uuid == "5BF6E500999911E3A1160002A5D5C51B");
+
+                if(dataService != null)
+                {
+                    var dataCharacteristic = dataService.GetGattCharacteristics().FirstOrDefault(c => c.Uuid == "BA9C5360999911E3966F0002A5D5C51B");
+
+                    if (dataCharacteristic != null)
+                    {
+                        dataCharacteristic.EnableNotificationAsync();
+
+                        Thread.Sleep(TimeSpan.FromSeconds(20000));
+
+                        dataCharacteristic.DisableNotificationAsync();
+                    }
+                    else
+                    {
+                        Console.WriteLine("Unable to find data Characteristic");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Unable to find data service");
+                }
 
                 Log.Information($"Disconnecting from [{advertisement.Address}] [{advertisement.Name}]");
             }
@@ -98,6 +120,11 @@ namespace BgApiApp
                     bled112Device.Disconnect();
                 }
             }
+        }
+
+        private static void SubscribeData(IReadOnlyCollection<BlueGigaService> services)
+        {
+            throw new NotImplementedException();
         }
 
         private static void ReadBattery(IReadOnlyCollection<BlueGigaService> services)

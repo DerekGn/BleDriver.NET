@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BgApiDriver;
+using System;
 using System.Collections.Generic;
 using static BgApiDriver.BgApi;
 
@@ -102,6 +103,8 @@ namespace BgApiApp
 
             _services.Clear();
 
+            ble_msg_attclient_procedure_completed_evt_t e = null;
+
             _adapter.WaitForEvent((evt) =>
             {
                 if (evt is ble_msg_attclient_group_found_evt_t attClientGroupFoundEvent)
@@ -111,6 +114,8 @@ namespace BgApiApp
                 }
                 else if (evt is ble_msg_attclient_procedure_completed_evt_t attClientProcedureCompleteEvent)
                 {
+                    e = attClientProcedureCompleteEvent;
+
                     return EventProcessingResult.Complete;
                 }
                 else
@@ -118,6 +123,13 @@ namespace BgApiApp
                     return EventProcessingResult.Skip;
                 }
             });
+
+#warning TODO CHECK result
+
+            if(e != null && e.result != (int)ble_error.ble_err_success)
+            {
+                throw new Exception();
+            }
 
             return _services;
         }
